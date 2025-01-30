@@ -1,95 +1,70 @@
-# NFT Gallery Marketplace
+# Crowdfunding Smart Contract
 
 ## Overview
-NFT Gallery Marketplace is a decentralized application that enables users to mint, list, buy, and transfer NFTs in a secure and efficient manner. The contract includes input validation and error handling to ensure smooth interactions within the marketplace.
+This smart contract is a crowdfunding system that allows users to create campaigns, pledge funds, withdraw pledges if goals are not met, and claim funds if the goal is reached. The contract ensures security through defined error codes and access control mechanisms.
 
 ## Features
-- **Minting NFTs**: Users can create unique NFTs with metadata such as name, description, and properties.
-- **Listing NFTs**: NFT owners can list their tokens for sale at a specified price.
-- **Buying NFTs**: Buyers can purchase listed NFTs by transferring the required amount.
-- **Cancelling Listings**: Sellers can cancel their NFT listings at any time.
-- **Transferring NFTs**: Owners can transfer NFTs to other users.
-- **Querying NFTs**: Read-only functions allow users to fetch token ownership, metadata, and listing information.
+- **Campaign Creation**: Users can create campaigns with a specified funding goal and deadline.
+- **Pledging Funds**: Contributors can pledge funds to active campaigns.
+- **Withdraw Pledge**: If the campaign deadline has passed and the goal was not met, contributors can withdraw their pledge.
+- **Claim Funds**: If the campaign goal is met, the campaign owner can claim the funds.
 
-## Smart Contract Functions
+## Data Structures
+- **campaigns** (Map): Stores campaign details including owner, goal, deadline, pledged amount, and claim status.
+- **pledges** (Map): Tracks pledges made by contributors to specific campaigns.
 
-### Public Functions
-- `mint(metadata-uri, name, description, properties) -> (ok token-id | err code)`  
-  Creates a new NFT and stores its metadata.
-- `list-token(token-id, price) -> (ok true | err code)`  
-  Lists an NFT for sale at the specified price.
-- `cancel-listing(token-id) -> (ok true | err code)`  
-  Cancels an active NFT listing.
-- `buy-token(token-id) -> (ok true | err code)`  
-  Allows a buyer to purchase a listed NFT.
-- `transfer-token(token-id, recipient) -> (ok true | err code)`  
-  Transfers an NFT to another user.
+## Error Codes
+- `ERR_CAMPAIGN_NOT_FOUND (1001)`: Campaign does not exist.
+- `ERR_CAMPAIGN_ENDED (1002)`: Campaign deadline has passed.
+- `ERR_GOAL_REACHED (1003)`: Campaign has already met its goal.
+- `ERR_INVALID_AMOUNT (1004)`: Pledge or goal amount is invalid.
+- `ERR_UNAUTHORIZED (1005)`: Unauthorized action.
+- `ERR_FUNDS_ALREADY_CLAIMED (1006)`: Campaign funds have already been claimed.
+- `ERR_GOAL_NOT_MET (1007)`: Campaign did not meet its goal.
+- `ERR_WITHDRAWAL_NOT_ALLOWED (1008)`: Withdrawal is not allowed.
 
-### Read-Only Functions
-- `get-token-owner(token-id) -> principal | err`  
-  Returns the owner of an NFT.
-- `get-listing(token-id) -> listing-data | none`  
-  Retrieves the details of a listed NFT.
-- `get-token-metadata(token-id) -> metadata | none`  
-  Returns the metadata of an NFT.
+## Functions
+### 1. Create Campaign
+```lisp
+(define-public (create-campaign (goal uint) (deadline uint))
+```
+- Creates a new campaign.
+- Requires a valid goal amount and a deadline in the future.
+- Returns the newly created campaign ID.
 
-## Error Handling
-The contract defines several error codes for input validation and access control:
-- `ERR-NOT-AUTHORIZED (u100)`: Unauthorized access attempt.
-- `ERR-NFT-EXISTS (u101)`: Token already exists.
-- `ERR-INVALID-PRICE (u102)`: Invalid price input.
-- `ERR-NOT-OWNER (u103)`: Action attempted by a non-owner.
-- `ERR-NOT-LISTED (u104)`: Token is not listed for sale.
-- `ERR-INSUFFICIENT-FUNDS (u105)`: Buyer has insufficient funds.
-- `ERR-INVALID-URI (u106)`: Invalid metadata URI.
-- `ERR-INVALID-NAME (u107)`: Invalid token name.
-- `ERR-INVALID-DESCRIPTION (u108)`: Invalid token description.
-- `ERR-INVALID-PROPERTIES (u109)`: Invalid token properties.
-- `ERR-INVALID-TOKEN-ID (u110)`: Token ID does not exist.
-- `ERR-INVALID-RECIPIENT (u111)`: Transfer recipient is invalid.
+### 2. Pledge Funds
+```lisp
+(define-public (pledge (id uint) (amount uint))
+```
+- Allows users to pledge funds to an active campaign.
+- Ensures the campaign is still active and has not yet met its goal.
 
-## Crowdfunding Smart Contract
+### 3. Withdraw Pledge
+```lisp
+(define-public (withdraw-pledge (id uint))
+```
+- Allows users to withdraw their pledge if the campaign failed to meet its goal.
+- Ensures the campaign has ended and the goal was not met.
 
-## Overview
-This smart contract enables users to create crowdfunding campaigns, pledge funds, withdraw pledges, and claim funds upon reaching the campaign goal. It includes robust error handling and validation mechanisms.
+### 4. Claim Funds
+```lisp
+(define-public (claim-funds (id uint))
+```
+- Enables the campaign owner to claim funds if the goal is met.
+- Ensures the funds have not been claimed already and the caller is the campaign owner.
 
-## Features
-- **Create Campaigns**: Users can set up campaigns with a funding goal and deadline.
-- **Pledge Funds**: Contributors can pledge funds to active campaigns.
-- **Withdraw Pledges**: If a campaign fails to meet its goal, contributors can withdraw their funds.
-- **Claim Funds**: Campaign owners can claim funds if the goal is met.
-- **Query Campaigns**: Users can check campaign status, contributions, and funding details.
+## Helper Functions
+- `get-current-block-height`: Retrieves the current block height.
+- `campaign-exists?`: Checks if a campaign exists.
+- `is-campaign-active?`: Determines if a campaign is still running.
+- `is-goal-met?`: Checks if a campaign has reached its funding goal.
 
-## Smart Contract Functions
-
-### Public Functions
-- `create-campaign(goal, deadline) -> (ok campaign-id | err code)`  
-  Creates a new crowdfunding campaign.
-- `pledge(id, amount) -> (ok true | err code)`  
-  Allows users to pledge funds to a campaign.
-- `withdraw-pledge(id) -> (ok true | err code)`  
-  Enables contributors to withdraw their pledges if the goal is not met.
-- `claim-funds(id) -> (ok true | err code)`  
-  Allows campaign owners to claim funds if the goal is reached.
-
-### Error Handling
-The contract includes the following error codes:
-- `ERR-CAMPAIGN-NOT-FOUND (u1001)`: Campaign does not exist.
-- `ERR-CAMPAIGN-ENDED (u1002)`: Campaign has ended.
-- `ERR-GOAL-REACHED (u1003)`: Campaign goal already reached.
-- `ERR-INVALID-AMOUNT (u1004)`: Invalid pledge amount.
-- `ERR-UNAUTHORIZED (u1005)`: Unauthorized action.
-- `ERR-FUNDS-ALREADY-CLAIMED (u1006)`: Funds already claimed by owner.
-- `ERR-GOAL-NOT-MET (u1007)`: Campaign goal not met.
-- `ERR-WITHDRAWAL-NOT-ALLOWED (u1008)`: Withdrawal not allowed.
-
-## Installation & Deployment
-1. Deploy the smart contract using Clarity on the Stacks blockchain.
-2. Ensure all required permissions are granted for users to interact with the contract.
-
-## Contribution
-Contributions are welcome! Please submit a pull request with detailed changes.
+## Security Considerations
+- Only the campaign owner can claim funds.
+- Pledges can only be withdrawn if the goal was not met.
+- Pledges must be greater than zero.
+- Campaign deadlines must be in the future at creation.
 
 ## License
-This project is open-source and available under the MIT License.
+This contract is open-source and can be modified for use in crowdfunding projects.
 
